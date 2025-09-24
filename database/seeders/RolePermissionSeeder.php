@@ -18,12 +18,14 @@ class RolePermissionSeeder extends Seeder
 
         // Roles
         $admin   = Role::firstOrCreate(['name' => 'admin']);
-        $finance  = Role::firstOrCreate(['name' => 'finance']);
+        $finance_batik  = Role::firstOrCreate(['name' => 'finance_batik']);
+        $finance_tourism  = Role::firstOrCreate(['name' => 'finance_tourism']);
         $visitor = Role::firstOrCreate(['name' => 'visitor']);
 
         // Grant permissions
         $admin->givePermissionTo(['view dashboard', 'manage users']);
-        $finance->givePermissionTo(['view dashboard']);
+        $finance_batik->givePermissionTo(['view dashboard']);
+        $finance_tourism->givePermissionTo(['view dashboard']);
         $visitor->givePermissionTo(['view dashboard']);
     }
 }

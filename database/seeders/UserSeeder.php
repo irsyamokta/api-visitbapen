@@ -47,20 +47,36 @@ class UserSeeder extends Seeder
 
         $visitor->assignRole('visitor');
 
-        // Finance
-        $finance = User::updateOrCreate(
-            ['email' => 'finance@example.com'],
+        // Finance Batik
+        $finance_batik = User::updateOrCreate(
+            ['email' => 'financebatik@example.com'],
             [
                 'id' => (string) Str::uuid(),
-                'name' => 'Finance',
+                'name' => 'Finance Batik',
                 'phone' => '1234567890',
                 'email_verified_at' => now(),
                 'password' => Hash::make('Password123!'),
-                'role' => 'finance',
+                'role' => 'finance_batik',
                 'avatar' => null,
             ]
         );
 
-        $finance->assignRole('finance');
+        $finance_batik->assignRole('finance_batik');
+
+        // Finance Tourism
+        $finance_tourism = User::updateOrCreate(
+            ['email' => 'financetourism@example.com'],
+            [
+                'id' => (string) Str::uuid(),
+                'name' => 'Finance Tourism',
+                'phone' => '1234567897',
+                'email_verified_at' => now(),
+                'password' => Hash::make('Password123!'),
+                'role' => 'finance_tourism',
+                'avatar' => null,
+            ]
+        );
+
+        $finance_tourism->assignRole('finance_tourism');
     }
 }
