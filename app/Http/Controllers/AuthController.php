@@ -22,6 +22,16 @@ class AuthController extends Controller
 
         $data = $validated->validated();
 
+        if ($user = User::where('email', $data['email'])
+            ->orWhere('phone', $data['phone'])
+            ->first()
+        ) {
+            $field = $user->email === $data['email'] ? 'Email' : 'Phone number';
+            return response()->json([
+                'message' => "$field already exists",
+            ], 422);
+        }
+
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
@@ -62,6 +72,10 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Logged in successfully',
+            'data' => [
+                'id' => $user->id,
+                'role' => $user->role
+            ]
         ], 200)->withCookie($cookie);
     }
 
