@@ -78,5 +78,37 @@ class UserSeeder extends Seeder
         );
 
         $finance_tourism->assignRole('finance_tourism');
+
+        // Admin Batik
+        $admin_batik = User::updateOrCreate(
+            ['email' => 'adminbatik@example.com'],
+            [
+                'id' => (string) Str::uuid(),
+                'name' => 'Admin Batik',
+                'phone' => '1234567789',
+                'email_verified_at' => now(),
+                'password' => Hash::make('Password123!'),
+                'role' => 'admin_batik',
+                'avatar' => null,
+            ]
+        );
+
+        $admin_batik->assignRole('admin_batik');
+
+        // Admin Tourism
+        $admin_tourism = User::updateOrCreate(
+            ['email' => 'admintourism@example.com'],
+            [
+                'id' => (string) Str::uuid(),
+                'name' => 'Admin Tourism',
+                'phone' => '1234567678',
+                'email_verified_at' => now(),
+                'password' => Hash::make('Password123!'),
+                'role' => 'admin_tourism',
+                'avatar' => null,
+            ]
+        );
+
+        $admin_tourism->assignRole('admin_tourism');
     }
 }
