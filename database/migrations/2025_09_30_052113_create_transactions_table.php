@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('user_id');
+            $table->text('title');
             $table->enum('type', ['income', 'expense']);
             $table->string('category');
             $table->integer('amount');
-            $table->text('description');
             $table->enum('finance_role', ['finance_batik', 'finance_tourism', 'admin_batik', 'admin_tourism']);
             $table->dateTime('transaction_date');
             $table->uuid('order_id')->nullable();

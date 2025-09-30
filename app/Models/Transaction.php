@@ -28,17 +28,16 @@ class Transaction extends Model
 
     protected $fillable = [
         'user_id',
+        'title',
         'type',
         'category',
         'amount',
-        'description',
         'finance_role',
         'transaction_date',
         'order_id',
     ];
 
     protected $casts = [
-        'transaction_date' => 'datetime',
         'type' => 'string',
         'finance_role' => 'string',
     ];
