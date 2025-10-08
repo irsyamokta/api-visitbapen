@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
+use App\Models\Order;
 use App\Helpers\ValidationHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -59,8 +60,8 @@ class TransactionController extends Controller
             ], 200);
         } catch (Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to retrieve transactions: ' . $e->getMessage()
+                'message' => 'Failed to retrieve transactions',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -69,9 +70,10 @@ class TransactionController extends Controller
     {
         try {
             $userRole = auth()->user()->role ?? 'user';
-            $financeRole = $userRole === 'admin_batik' || $userRole === 'finance_batik'
+            $financeRole =
+                ($userRole === 'admin_batik' || $userRole === 'finance_batik')
                 ? 'finance_batik'
-                : ($userRole === 'admin_tourism' || $userRole === 'finance_tourism'
+                : (($userRole === 'admin_tourism' || $userRole === 'finance_tourism' || $userRole === 'admin')
                     ? 'finance_tourism'
                     : null);
 
@@ -134,8 +136,41 @@ class TransactionController extends Controller
             ], 200);
         } catch (Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to retrieve dashboard data: ' . $e->getMessage()
+                'message' => 'Failed to retrieve dashboard data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        try {
+            $userRole = auth()->user()->role ?? 'user';
+            $financeRole = $userRole === 'admin_batik' || $userRole === 'finance_batik' ? 'finance_batik' : null;
+
+            $transaction = Transaction::where('id', $id)
+                ->when($financeRole, function ($query) use ($financeRole) {
+                    return $query->where('finance_role', $financeRole);
+                })->first();
+
+            if (!$transaction) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Transaksi tidak ditemukan'
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $transaction
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve transaction',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -158,59 +193,43 @@ class TransactionController extends Controller
                 ], 400);
             }
 
+            $data = $validator->validated();
+            $orderId = null;
+
+            if ($request->has('ticket_id') && $request->type === 'income' && in_array($userRole, ['finance_tourism', 'admin_tourism'])) {
+                $order = Order::create([
+                    'user_id' => $data['user_id'] ?? null,
+                    'ticket_id' => $data['ticket_id'],
+                    'name' => $data['name'],
+                    'channel' => 'offline',
+                    'payment_method' => 'cash',
+                    'status' => 'paid',
+                    'quantity' => $data['quantity'] ?? 1,
+                    'total_price' => $data['amount'],
+                    'order_date' => Carbon::parse($data['transaction_date'])->setTimezone(config('app.timezone')),
+                    'qr_code' => null,
+                ]);
+                $orderId = $order->id;
+            }
+
             $transaction = Transaction::create([
                 'user_id' => auth()->user()->id,
-                'title' => $request->title,
-                'type' => $request->type,
-                'category' => $request->category,
-                'amount' => $request->amount,
+                'title' => $data['title'],
+                'type' => $data['type'],
+                'category' => $data['category'],
+                'amount' => $data['amount'],
                 'finance_role' => $financeRole,
-                'transaction_date' => Carbon::parse($request->transaction_date)
-                    ->setTimezone(config('app.timezone')),
-                'order_id' => null,
+                'transaction_date' => Carbon::parse($data['transaction_date'])->setTimezone(config('app.timezone')),
+                'order_id' => $orderId,
             ]);
 
             return response()->json([
-                'status' => 'success',
-                'data' => $transaction
+                'message' => 'Transaksi berhasil dibuat',
             ], 201);
         } catch (Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to create transaction: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        try {
-            $userRole = auth()->user()->role ?? 'user';
-            $financeRole = $userRole === 'admin_batik' || $userRole === 'finance_batik' ? 'finance_batik' : null;
-
-            $transaction = Transaction::where('id', $id)
-                ->when($financeRole, function ($query) use ($financeRole) {
-                    return $query->where('finance_role', $financeRole);
-                })->first();
-
-            if (!$transaction) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Transaction not found'
-                ], 404);
-            }
-
-            return response()->json([
-                'status' => 'success',
-                'data' => $transaction
-            ], 200);
-        } catch (Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to retrieve transaction: ' . $e->getMessage()
+                'message' => 'Gagal membuat transaksi',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -222,7 +241,7 @@ class TransactionController extends Controller
     {
         try {
             $userRole = auth()->user()->role ?? 'user';
-            $financeRole = $userRole === 'admin_batik' || $userRole === 'finance_batik' ? 'finance_batik' : null;
+            $financeRole = $userRole === 'admin_batik' || $userRole === 'finance_batik' ? 'finance_batik' : 'finance_tourism';
 
             $transaction = Transaction::where('id', $id)
                 ->when($financeRole, function ($query) use ($financeRole) {
@@ -232,7 +251,7 @@ class TransactionController extends Controller
             if (!$transaction) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Transaction not found'
+                    'message' => 'Transaksi tidak ditemukan'
                 ], 404);
             }
 
@@ -245,25 +264,58 @@ class TransactionController extends Controller
                 ], 400);
             }
 
+            $data = $validator->validated();
+            $orderId = $transaction->order_id;
+
+            if ($request->has('ticket_id') && $data['type'] === 'income' && in_array($userRole, ['finance_tourism', 'admin_tourism'])) {
+                if ($orderId) {
+                    $order = Order::find($orderId);
+                    if ($order) {
+                        $order->update([
+                            'ticket_id' => $data['ticket_id'],
+                            'quantity' => $data['quantity'] ?? 1,
+                            'total_price' => $data['amount'],
+                            'order_date' => Carbon::parse($data['transaction_date'])->setTimezone(config('app.timezone')),
+                        ]);
+                    }
+                } else {
+                    $order = Order::create([
+                        'user_id' => $data['user_id'] ?? null,
+                        'ticket_id' => $data['ticket_id'],
+                        'name' => $data['name'],
+                        'channel' => 'offline',
+                        'payment_method' => 'cash',
+                        'status' => 'paid',
+                        'quantity' => $data['quantity'] ?? 1,
+                        'total_price' => $data['amount'],
+                        'order_date' => Carbon::parse($data['transaction_date'])->setTimezone(config('app.timezone')),
+                        'qr_code' => null,
+                    ]);
+                    $orderId = $order->id;
+                }
+            } elseif ($orderId && (!$request->has('ticket_id') || $data['type'] !== 'income')) {
+                $orderId = null;
+            }
+
             $transaction->update([
-                'user_id' => $request->user_id ?? $transaction->user_id,
-                'title' => $request->title ?? $transaction->title,
-                'type' => $request->type ?? $transaction->type,
-                'category' => $request->category ?? $transaction->category,
-                'amount' => $request->amount ?? $transaction->amount,
+                'user_id' => $data['user_id'] ?? $transaction->user_id,
+                'title' => $data['title'] ?? $transaction->title,
+                'type' => $data['type'] ?? $transaction->type,
+                'category' => $data['category'] ?? $transaction->category,
+                'amount' => $data['amount'] ?? $transaction->amount,
                 'finance_role' => $financeRole ?? $transaction->finance_role,
-                'transaction_date' => $request->transaction_date ? Carbon::parse($request->transaction_date) : $transaction->transaction_date,
-                'order_id' => null,
+                'transaction_date' => $data['transaction_date'] ? Carbon::parse($data['transaction_date']) : $transaction->transaction_date,
+                'order_id' => $orderId,
+                'name' => $data['name'] ?? $transaction->name,
             ]);
 
             return response()->json([
-                'status' => 'success',
-                'data' => $transaction
+                'message' => 'Transaksi berhasil diperbarui',
             ], 200);
         } catch (Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to update transaction: ' . $e->getMessage()
+                'message' => 'Gagal memperbarui transaksi',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -285,7 +337,7 @@ class TransactionController extends Controller
             if (!$transaction) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Transaction not found'
+                    'message' => 'Transaksi tidak ditemukan'
                 ], 404);
             }
 
@@ -293,12 +345,12 @@ class TransactionController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Transaction deleted'
+                'message' => 'Transaksi berhasil dihapus'
             ], 200);
         } catch (Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to delete transaction: ' . $e->getMessage()
+                'message' => 'Gagal menghapus transaksi',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -347,11 +399,11 @@ class TransactionController extends Controller
                 'balance' => $balance
             ];
 
-            return Excel::download(new TransactionExport($transactions, $summary), 'transactions_' . Carbon::now()->format('Y-m-d') . '.xlsx');
+            return Excel::download(new TransactionExport($transactions, $summary), 'transaksi_' . Carbon::now()->format('Y-m-d') . '.xlsx');
         } catch (Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to download transactions: ' . $e->getMessage()
+                'message' => 'Gagal mengunduh transaksi',
+                'error' => $e->getMessage()
             ], 500);
         }
     }

@@ -44,9 +44,4 @@ class Ticket extends Model
     {
         return $this->hasMany(Order::class, 'ticket_id');
     }
-
-    public function tour()
-    {
-        return $this->belongsTo(Tour::class);
-    }
 }

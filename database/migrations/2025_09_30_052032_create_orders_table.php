@@ -13,15 +13,17 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('user_id');
+            $table->uuid('user_id')->nullable();
             $table->uuid('ticket_id');
+            $table->string('name')->nullable();
             $table->enum('channel', ['online', 'offline']);
             $table->enum('payment_method', ['qris', 'cash']);
-            $table->enum('status', ['pending', 'paid', 'cancelled', 'expired'])->default('pending');
+            $table->enum('status', ['pending', 'paid', 'canceled', 'expired'])->default('pending');
             $table->integer('quantity');
             $table->integer('total_price');
-            $table->dateTime('order_date');
+            $table->timestamp('order_date');
             $table->string('qr_code')->nullable();
+            $table->timestamp('used_at')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

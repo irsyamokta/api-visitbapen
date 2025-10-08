@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('cover')->nullable();
             $table->string('public_id')->unique();
             $table->uuid('created_by');
-            $table->uuid('tour_id')->nullable();
             $table->timestamps();
 
             $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');

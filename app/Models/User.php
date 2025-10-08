@@ -16,8 +16,10 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $name
  * @property string $email
  * @property string $phone
+ * @property string $instagram
  * @property string $role
  * @property string $avatar
+ * @property string $public_id
  * @property string $password
  * @property string $email_verified_at
  * @property string $created_at
@@ -42,8 +44,10 @@ class User extends Authenticatable
         'name',
         'email',
         'phone',
+        'instagram',
         'role',
         'avatar',
+        'public_id',
         'password',
         'email_verified_at',
     ];

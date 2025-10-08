@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('start');
             $table->string('end');
             $table->text('facility');
-            $table->string('maps');
+            $table->text('maps');
             $table->integer('price');
             $table->string('public_id')->unique();
             $table->string('thumbnail')->nullable();
