@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Exports\TransactionExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 
 class TransactionController extends Controller
@@ -196,7 +197,12 @@ class TransactionController extends Controller
             $data = $validator->validated();
             $orderId = null;
 
-            if ($request->has('ticket_id') && $request->type === 'income' && in_array($userRole, ['finance_tourism', 'admin_tourism'])) {
+            if (
+                $data['category'] === 'Penjualan Tiket' &&
+                $request->has('ticket_id') &&
+                $data['type'] === 'income' &&
+                in_array($userRole, ['finance_tourism', 'admin_tourism'])
+            ) {
                 $order = Order::create([
                     'user_id' => $data['user_id'] ?? null,
                     'ticket_id' => $data['ticket_id'],
@@ -209,6 +215,7 @@ class TransactionController extends Controller
                     'order_date' => Carbon::parse($data['transaction_date'])->setTimezone(config('app.timezone')),
                     'qr_code' => null,
                 ]);
+
                 $orderId = $order->id;
             }
 
@@ -221,6 +228,7 @@ class TransactionController extends Controller
                 'finance_role' => $financeRole,
                 'transaction_date' => Carbon::parse($data['transaction_date'])->setTimezone(config('app.timezone')),
                 'order_id' => $orderId,
+                'financier' => $data['financier'] ?? null
             ]);
 
             return response()->json([
@@ -267,7 +275,12 @@ class TransactionController extends Controller
             $data = $validator->validated();
             $orderId = $transaction->order_id;
 
-            if ($request->has('ticket_id') && $data['type'] === 'income' && in_array($userRole, ['finance_tourism', 'admin_tourism'])) {
+            if (
+                $data['category'] === 'Penjualan Tiket' &&
+                $request->has('ticket_id') &&
+                $data['type'] === 'income' &&
+                in_array($userRole, ['finance_tourism', 'admin_tourism'])
+            ) {
                 if ($orderId) {
                     $order = Order::find($orderId);
                     if ($order) {
@@ -293,7 +306,7 @@ class TransactionController extends Controller
                     ]);
                     $orderId = $order->id;
                 }
-            } elseif ($orderId && (!$request->has('ticket_id') || $data['type'] !== 'income')) {
+            } else {
                 $orderId = null;
             }
 
@@ -306,6 +319,7 @@ class TransactionController extends Controller
                 'finance_role' => $financeRole ?? $transaction->finance_role,
                 'transaction_date' => $data['transaction_date'] ? Carbon::parse($data['transaction_date']) : $transaction->transaction_date,
                 'order_id' => $orderId,
+                'financier' => $data['financier'] ?? $transaction->financier,
                 'name' => $data['name'] ?? $transaction->name,
             ]);
 
@@ -358,7 +372,7 @@ class TransactionController extends Controller
     /**
      * Download the specified resource by transaction date.
      */
-    public function export(Request $request)
+    public function exportPdf(Request $request)
     {
         try {
             $userRole = auth()->user()->role ?? 'user';
@@ -367,6 +381,12 @@ class TransactionController extends Controller
                 : ($userRole === 'admin_tourism' || $userRole === 'finance_tourism'
                     ? 'finance_tourism'
                     : null);
+
+            $reportTitle = match ($financeRole) {
+                'finance_batik' => 'Laporan Keuangan Batik Caraka',
+                'finance_tourism' => 'Laporan Keuangan Wisata Bukit Pengaritan',
+                default => 'Laporan Keuangan',
+            };
 
             $query = Transaction::query();
 
@@ -399,10 +419,20 @@ class TransactionController extends Controller
                 'balance' => $balance
             ];
 
-            return Excel::download(new TransactionExport($transactions, $summary), 'transaksi_' . Carbon::now()->format('Y-m-d') . '.xlsx');
+            $pdf = Pdf::loadView('pdf.transactions', [
+                'transactions' => $transactions,
+                'summary' => $summary,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'report_title' => $reportTitle,
+            ])->setPaper('a4', 'portrait');
+
+            $filename = 'transaksi_' . Carbon::now()->format('Y-m-d') . '.pdf';
+
+            return $pdf->download($filename);
         } catch (Exception $e) {
             return response()->json([
-                'message' => 'Gagal mengunduh transaksi',
+                'message' => 'Gagal mengunduh transaksi PDF',
                 'error' => $e->getMessage()
             ], 500);
         }

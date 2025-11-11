@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('user_id')->nullable();
-            $table->uuid('ticket_id');
+            $table->uuid('ticket_id')->nullable();
             $table->string('name')->nullable();
             $table->enum('channel', ['online', 'offline']);
             $table->enum('payment_method', ['qris', 'cash']);

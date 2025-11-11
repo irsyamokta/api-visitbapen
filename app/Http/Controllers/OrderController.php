@@ -82,7 +82,7 @@ class OrderController extends Controller
                 'user_id' => auth()->user()->id,
                 'title' => 'Penjualan Tiket',
                 'type' => 'income',
-                'category' => 'Penjualan',
+                'category' => 'Penjualan Tiket',
                 'amount' => $data['total_price'],
                 'finance_role' => 'finance_tourism',
                 'transaction_date' => Carbon::parse(now())->setTimezone(config('app.timezone')),

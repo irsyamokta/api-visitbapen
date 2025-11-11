@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('category');
             $table->integer('amount');
             $table->enum('finance_role', ['finance_batik', 'finance_tourism', 'admin_batik', 'admin_tourism']);
+            $table->string('financier')->nullable();
             $table->dateTime('transaction_date');
             $table->uuid('order_id')->nullable();
             $table->timestamps();

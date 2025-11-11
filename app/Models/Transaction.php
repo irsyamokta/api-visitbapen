@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
  * @property string $finance_role
  * @property \Carbon\Carbon $transaction_date
  * @property string|null $order_id
+ * @property string|null $financier
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  */
@@ -35,6 +36,7 @@ class Transaction extends Model
         'finance_role',
         'transaction_date',
         'order_id',
+        'financier',
     ];
 
     protected $casts = [

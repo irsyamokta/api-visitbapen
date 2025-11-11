@@ -36,14 +36,14 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-Route::middleware(['auth:sanctum', 'role:finance_batik|admin_batik|finance_tourism|admin_tourism|admin'])->prefix('transactions')->group(function () {
+Route::middleware(['auth:sanctum', 'role:finance_batik|admin_batik|finance_tourism|admin_tourism'])->prefix('transactions')->group(function () {
     Route::get('/', [TransactionController::class, 'index']);
     Route::post('/', [TransactionController::class, 'store']);
     Route::get('/{id}', [TransactionController::class, 'show']);
     Route::put('/{id}', [TransactionController::class, 'update']);
     Route::delete('/{id}', [TransactionController::class, 'destroy']);
     Route::get('/analytics/data', [TransactionController::class, 'analytics']);
-    Route::get('/export/data', [TransactionController::class, 'export']);
+    Route::get('/export/data', [TransactionController::class, 'exportPdf']);
 });
 
 Route::middleware(['auth:sanctum', 'role:finance_batik|admin_batik|finance_tourism|admin_tourism'])->prefix('dashboard')->group(function () {

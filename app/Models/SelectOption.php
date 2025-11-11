@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
  * @property string $id
  * @property string $name
  * @property string $category
+ * @property string $type
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  */
@@ -23,5 +24,6 @@ class SelectOption extends Model
     protected $fillable = [
         'name',
         'category',
+        'type',
     ];
 }

@@ -73,37 +73,6 @@ class ValidationHelper
         );
     }
 
-    // public static function validateTransaction($data, $isStore = false)
-    // {
-    //     return Validator::make(
-    //         $data,
-    //         [
-    //             'title' => ($isStore ? 'required' : 'sometimes|required') . '|string|max:255',
-    //             'amount' => ($isStore ? 'required' : 'sometimes|required') . '|integer|min:0',
-    //             'type' => ($isStore ? 'required' : 'sometimes|required') . '|in:income,expense',
-    //             'category' => ($isStore ? 'required' : 'sometimes|required') . '|string|max:255',
-    //             'transaction_date' => ($isStore ? 'required' : 'sometimes|required') . '|date',
-    //         ],
-    //         [
-    //             'title.required' => 'Judul transaksi wajib diisi.',
-    //             'title.string' => 'Judul transaksi harus berupa teks.',
-    //             'title.max' => 'Judul transaksi maksimal 255 karakter.',
-    //             'amount.required' => 'Jumlah transaksi wajib diisi.',
-    //             'amount.integer' => 'Jumlah transaksi harus berupa angka bulat.',
-    //             'amount.min' => 'Jumlah transaksi tidak boleh negatif.',
-    //             'type.required' => 'Tipe transaksi wajib diisi.',
-    //             'type.in' => 'Tipe transaksi harus income atau expense.',
-    //             'category.required' => 'Kategori transaksi wajib diisi.',
-    //             'category.string' => 'Kategori transaksi harus berupa teks.',
-    //             'category.max' => 'Kategori transaksi maksimal 255 karakter.',
-    //             'transaction_date.required' => 'Tanggal transaksi wajib diisi.',
-    //             'transaction_date.date' => 'Tanggal transaksi tidak valid.',
-    //             'user_id.uuid' => 'ID pengguna harus berupa UUID yang valid.',
-    //             'user_id.exists' => 'ID pengguna tidak ditemukan.',
-    //         ]
-    //     );
-    // }
-
     public static function validateTransaction($data, $isStore = false)
     {
         return Validator::make(
@@ -116,6 +85,7 @@ class ValidationHelper
                 'transaction_date' => ($isStore ? 'required' : 'sometimes|required') . '|date',
                 'name' => 'nullable|string|max:255',
                 'ticket_id' => 'nullable|string|exists:tickets,id',
+                'financier' => 'nullable|string|max:255',
                 'quantity' => 'nullable|integer|min:1',
             ],
             [
@@ -134,6 +104,8 @@ class ValidationHelper
                 'name.string' => 'Nama harus berupa teks.',
                 'name.max' => 'Nama maksimal 255 karakter.',
                 'ticket_id.exists' => 'Tiket tidak valid.',
+                'financier.string' => 'Financier harus berupa teks.',
+                'financier.max' => 'Financier maksimal 255 karakter.',
                 'quantity.integer' => 'Jumlah pembelian harus berupa angka.',
                 'quantity.min' => 'Jumlah pembelian minimal 1.',
             ]
@@ -241,6 +213,7 @@ class ValidationHelper
             [
                 'name' => ($isStore ? 'required' : 'sometimes|required') . '|string|max:255',
                 'category' => ($isStore ? 'required' : 'sometimes|required') . '|string|max:255',
+                'type' => ($isStore ? 'nullable' : 'sometimes|nullable') . '|string|max:50',
             ],
             [
                 'name.required' => 'Nama wajib diisi.',
@@ -249,6 +222,8 @@ class ValidationHelper
                 'category.required' => 'Kategori wajib diisi.',
                 'category.string' => 'Kategori harus berupa teks.',
                 'category.max' => 'Kategori maksimal 255 karakter.',
+                'type.string' => 'Tipe harus berupa teks.',
+                'type.max' => 'Tipe maksimal 50 karakter.',
             ]
         );
     }

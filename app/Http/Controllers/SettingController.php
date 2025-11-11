@@ -43,6 +43,7 @@ class SettingController extends Controller
             SelectOption::create([
                 'name' => $data['name'],
                 'category' => $data['category'],
+                'type' => $data['type'] ?? null,
             ]);
 
             return response()->json([
@@ -79,6 +80,7 @@ class SettingController extends Controller
             $setting->update([
                 'name' => $data['name'],
                 'category' => $data['category'],
+                'type' => $data['type'] ?? null,
             ]);
 
             return response()->json([
