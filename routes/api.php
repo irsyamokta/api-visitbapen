@@ -44,6 +44,7 @@ Route::middleware(['auth:sanctum', 'role:finance_batik|admin_batik|finance_touri
     Route::delete('/{id}', [TransactionController::class, 'destroy']);
     Route::get('/analytics/data', [TransactionController::class, 'analytics']);
     Route::get('/export/data', [TransactionController::class, 'exportPdf']);
+    Route::get('/print/{orderId}', [TransactionController::class, 'printOrder']);
 });
 
 Route::middleware(['auth:sanctum', 'role:finance_batik|admin_batik|finance_tourism|admin_tourism'])->prefix('dashboard')->group(function () {

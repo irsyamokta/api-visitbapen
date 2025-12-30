@@ -23,7 +23,7 @@ class UserSeeder extends Seeder
                 'name' => 'Admin',
                 'phone' => '1234567892',
                 'email_verified_at' => now(),
-                'password' => Hash::make('Password123!'),
+                'password' => Hash::make('@Visitbapen53195!'),
                 'role' => 'admin',
                 'avatar' => null,
             ]

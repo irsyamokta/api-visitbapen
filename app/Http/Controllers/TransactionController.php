@@ -11,6 +11,7 @@ use App\Exports\TransactionExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
+use Ramsey\Uuid\Uuid;
 
 class TransactionController extends Controller
 {
@@ -213,7 +214,7 @@ class TransactionController extends Controller
                     'quantity' => $data['quantity'] ?? 1,
                     'total_price' => $data['amount'],
                     'order_date' => Carbon::parse($data['transaction_date'])->setTimezone(config('app.timezone')),
-                    'qr_code' => null,
+                    'qr_code' => Uuid::uuid4()->toString(),
                 ]);
 
                 $orderId = $order->id;
@@ -233,6 +234,7 @@ class TransactionController extends Controller
 
             return response()->json([
                 'message' => 'Transaksi berhasil dibuat',
+                'data' => $transaction
             ], 201);
         } catch (Exception $e) {
             return response()->json([
@@ -302,7 +304,7 @@ class TransactionController extends Controller
                         'quantity' => $data['quantity'] ?? 1,
                         'total_price' => $data['amount'],
                         'order_date' => Carbon::parse($data['transaction_date'])->setTimezone(config('app.timezone')),
-                        'qr_code' => null,
+                        'qr_code' => Uuid::uuid4()->toString(),
                     ]);
                     $orderId = $order->id;
                 }
@@ -436,5 +438,30 @@ class TransactionController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Print the specified resource by transaction date.
+     */
+    public function printOrder(string $orderId)
+    {
+        $order = Order::with('ticket')
+            ->findOrFail($orderId);
+
+        return response()->json([
+            'buyer_name' => $order->name,
+            'items' => [
+                [
+                    'category_name' => $order->ticket->title ?? 'Tiket',
+                    'quantity' => $order->quantity,
+                ]
+            ],
+            'total_price' => (float) $order->total_price,
+            'ticket_details' => [
+                [
+                    'qr_code' => $order->qr_code,
+                ]
+            ],
+        ]);
     }
 }
